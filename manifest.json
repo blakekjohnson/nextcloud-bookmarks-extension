@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "My Nextcloud Bookmarks",
+  "version": "0.1",
+  "description": "Get access to your Nextcloud Bookmarks",
+  "homepage_url": "https://github.com/blakekjohnson/nextcloud-bookmarks-extension",
+  "icons": {
+    "48": "logo.png"
+  },
+  "permissions": [
+    "storage",
+    "https://*/*"
+  ],
+  "browser_action": {
+    "default_icon": "logo.png",
+    "default_title": "My Nextcloud Bookmarks",
+    "default_popup": "index.html"
+  }
+}
+
