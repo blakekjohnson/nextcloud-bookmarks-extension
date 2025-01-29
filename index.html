@@ -7,11 +7,30 @@
 
   <body>
     <h1>My Nextcloud Bookmarks</h1>
-    <button id="settings-button">Settings</button>
+    <button id="search-page-button" disabled>Search</button>
+    <button id="settings-page-button">Settings</button>
+
+    <div id="search-screen">
+      <input id="nextcloud-search" placeholder="bookmark" />
+      <br />
+      <button id="nextcloud-search-button">Search</button>
+    </div>
 
     <!-- Settings screen -->
     <div id="settings-screen" class="invisible">
-      Test
+      <label>Nextcloud Domain: </label>
+      <input id="nextcloud-domain" placeholder="nextcloud.example.com" />
+      <br />
+
+      <label>Username: </label>
+      <input id="nextcloud-username" placeholder="username" />
+      <br />
+
+      <label>Password: </label>
+      <input id="nextcloud-password" placeholder="password" type="password" />
+      <br />
+
+      <button id="settings-update-button">Update</button>
     </div>
   </body>
     
