@@ -1,8 +1,15 @@
-let activeScreen = "SEARCH";
+const ALL_SCREENS = {
+  "LIST": "list",
+  "SETTINGS": "settings",
+};
+
+let activeScreen = ALL_SCREENS.LIST;
 
 let nextcloudDomain = null;
 let nextcloudUsername = null;
 let nextcloudToken = null;
+
+const BASE_PATH = "index.php/apps/bookmarks/public/rest/v2/bookmark";
 
 const LOCAL_STORAGE_KEYS = {
   domain: "mnb-domain",
@@ -10,22 +17,17 @@ const LOCAL_STORAGE_KEYS = {
   token: "mnb-token",
 };
 
-// Toggle between search page state
-function setSearchScreenActive() {
-  document.getElementById("search-screen").classList = [];
-  document.getElementById("settings-screen").classList = [ "invisible" ];
-
-  document.getElementById("search-page-button").disabled = true;
-  document.getElementById("settings-page-button").disabled = false;
+function setActiveScreen(newActiveScreen) {
+  Object
+    .keys(ALL_SCREENS)
+    .forEach((screen) => {
+      updateScreen(ALL_SCREENS[screen], newActiveScreen == screen);
+    });
 }
 
-// Toggle between settings page state
-function setSettingsScreenActive() {
-  document.getElementById("settings-screen").classList = [];
-  document.getElementById("search-screen").classList = [ "invisible" ];
-
-  document.getElementById("settings-page-button").disabled = true;
-  document.getElementById("search-page-button").disabled = false;
+function updateScreen(screenName, state) {
+  document.getElementById(`${screenName}-screen`).classList = state ? [] : [ "invisible" ];
+  document.getElementById(`${screenName}-screen-button`).disabled = state;
 }
 
 // Load Nextcloud settings from storage
@@ -46,10 +48,9 @@ function saveNextcloudSettings() {
   localStorage.setItem(LOCAL_STORAGE_KEYS.domain, nextcloudDomain);
   localStorage.setItem(LOCAL_STORAGE_KEYS.username, nextcloudUsername);
 
-  let unencryptedToken = 
-    `${nextcloudUsername}:${document.getElementById("nextcloud-password")}`;
+  let nextcloudPassword = document.getElementById("nextcloud-password").value;
   document.getElementById("nextcloud-password").value = null;
-  nextcloudToken = btoa(unencryptedToken);
+  nextcloudToken = btoa(nextcloudUsername + ":" + nextcloudPassword);
 
   localStorage.setItem(LOCAL_STORAGE_KEYS.token, nextcloudToken);
 }
@@ -60,42 +61,42 @@ function updateNextcloudSettings() {
   loadNextcloudSettings();
 }
 
-// Search bookmarks
-function searchNextcloudBookmarks() {
-  let query = document.getElementById("nextcloud-search").value;
+// Get all bookmarks for given user
+async function getAllBookmarks() {
+  let endpoint = `${nextcloudDomain}/${BASE_PATH}`;
 
-  console.log(nextcloudToken);
-  window
-    .fetch(`${nextcloudDomain}/index.php/apps/bookmarks/public/rest/v2/bookmark?search=${query}`, {
-      headers: {
-        "Authorization": `basic ${nextcloudToken}`,
-      },
-    })
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (data) {
-      console.log(data);
-    })
-    .catch(function (err) {
-      console.error(err);
-    });
+  let rawResponse = await window.fetch(endpoint, {
+    "Authorization": `Basic ${nextcloudToken}`,
+    "Accepts": "application/json",
+  });
+
+  let responseJson = await rawResponse.json();
+
+  return responseJson.data;
 }
 
 // On launch load Nextcloud settings from storage
 loadNextcloudSettings();
 
+// Then load all bookmarks
+(async () => {
+  let bookmarks = await getAllBookmarks();
+  console.log(JSON.stringify(bookmarks));
+})();
+
+
 // Register button listeners
-document
-  .getElementById("search-page-button")
-  .addEventListener("click", setSearchScreenActive);
-document
-  .getElementById("settings-page-button")
-  .addEventListener("click", setSettingsScreenActive);
+Object
+  .keys(ALL_SCREENS)
+  .forEach((screen) => {
+    document
+      .getElementById(`${ALL_SCREENS[screen]}-screen-button`)
+      .addEventListener("click", () => {
+        setActiveScreen(screen);
+      });
+  });
+
 document
   .getElementById("settings-update-button")
   .addEventListener("click", updateNextcloudSettings);
-document
-  .getElementById("nextcloud-search-button")
-  .addEventListener("click", searchNextcloudBookmarks);
 
