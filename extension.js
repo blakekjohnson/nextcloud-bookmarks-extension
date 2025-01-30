@@ -63,7 +63,7 @@ function updateNextcloudSettings() {
 
 // Get all bookmarks for given user
 async function getAllBookmarks() {
-  let endpoint = `${nextcloudDomain}/${BASE_PATH}`;
+  let endpoint = `${nextcloudDomain}/${BASE_PATH}?page=-1`;
 
   let rawResponse = await window.fetch(endpoint, {
     "Authorization": `Basic ${nextcloudToken}`,
@@ -75,13 +75,33 @@ async function getAllBookmarks() {
   return responseJson.data;
 }
 
+// Create element for given bookmark
+function createBookmarkElement(bookmark) {
+  let el = document.createElement("li");
+  el.innerHTML =
+    `${bookmark.id} - <a href=${bookmark.url}>${bookmark.title}</a>`;
+
+  return el;
+}
+
+// Create elements for an array of bookmarks and add to list
+function loadBookmarksList(bookmarks) {
+  bookmarks
+    .forEach((bookmark) => {
+      let bookmarkElement = createBookmarkElement(bookmark);
+      document
+        .getElementById("bookmark-list")
+        .appendChild(bookmarkElement);
+    });
+}
+
 // On launch load Nextcloud settings from storage
 loadNextcloudSettings();
 
 // Then load all bookmarks
 (async () => {
   let bookmarks = await getAllBookmarks();
-  console.log(JSON.stringify(bookmarks));
+  loadBookmarksList(bookmarks);
 })();
 
 
