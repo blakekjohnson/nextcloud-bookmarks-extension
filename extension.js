@@ -17,15 +17,19 @@ const LOCAL_STORAGE_KEYS = {
   token: "mnb-token",
 };
 
-function setActiveScreen(newActiveScreen) {
+async function setActiveScreen(newActiveScreen) {
   Object
     .keys(ALL_SCREENS)
-    .forEach((screen) => {
-      updateScreen(ALL_SCREENS[screen], newActiveScreen == screen);
+    .forEach(async  (screen) => {
+      await updateScreen(ALL_SCREENS[screen], newActiveScreen == screen);
     });
 }
 
-function updateScreen(screenName, state) {
+async function updateScreen(screenName, state) {
+  if (screenName == ALL_SCREENS.LIST && state) {
+    await loadBookmarkList();
+  }
+
   document.getElementById(`${screenName}-screen`).classList = state ? [] : [ "invisible" ];
   document.getElementById(`${screenName}-screen-button`).disabled = state;
 }
@@ -79,13 +83,14 @@ async function getAllBookmarks() {
 function createBookmarkElement(bookmark) {
   let el = document.createElement("li");
   el.innerHTML =
-    `${bookmark.id} - <a href=${bookmark.url}>${bookmark.title}</a>`;
+    `<a href=${bookmark.url}>${bookmark.title}</a>`;
 
   return el;
 }
 
-// Create elements for an array of bookmarks and add to list
-function loadBookmarksList(bookmarks) {
+async function loadBookmarkList() {
+  document.getElementById("bookmark-list").replaceChildren([]);
+  let bookmarks = await getAllBookmarks();
   bookmarks
     .forEach((bookmark) => {
       let bookmarkElement = createBookmarkElement(bookmark);
@@ -98,25 +103,22 @@ function loadBookmarksList(bookmarks) {
 // On launch load Nextcloud settings from storage
 loadNextcloudSettings();
 
-// Then load all bookmarks
-(async () => {
-  let bookmarks = await getAllBookmarks();
-  loadBookmarksList(bookmarks);
-})();
-
-
 // Register button listeners
 Object
   .keys(ALL_SCREENS)
   .forEach((screen) => {
     document
       .getElementById(`${ALL_SCREENS[screen]}-screen-button`)
-      .addEventListener("click", () => {
-        setActiveScreen(screen);
+      .addEventListener("click", async () => {
+        await setActiveScreen(screen);
       });
   });
 
 document
   .getElementById("settings-update-button")
   .addEventListener("click", updateNextcloudSettings);
+
+window.addEventListener("load", async function () {
+  loadBookmarkList();
+})
 
